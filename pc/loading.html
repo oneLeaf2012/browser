@@ -1,0 +1,229 @@
+<!doctype html>
+<html> 
+<head>
+<title>Avatar Demo</title>
+<meta charset='utf8'/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0" />
+<script>
+// 页面开始加载前的时间，用于统计页面加载时间。放置于最前以保证准确性。
+var STARTTIME = new Date().getTime();
+</script>
+<style>
+*{ margin: 0; padding: 0; }
+body{ line-height: 1.5; font-size: 12px; font-family: microsoft yahei;}
+a{ color: #4285f4; }
+.wrap{ width: 800px; margin: 0 auto; }
+h1{ margin-bottom: 20px; border-bottom: 1px solid #ddd; line-height: 100px; text-align: center;}
+.pln{color:#000}@media screen{.str{color:#C30}.kwd{color:#008}.com{color:#999}.typ{color:#606}.lit{color:#4f9fcf}.pun,.opn,.clo{color:#660}.tag{color:#008}.atn{color:#606}.atv{color:#080}.dec,.var{color:#606}.fun{color:red}}@media print,projection{.str{color:#060}.kwd{color:#006;font-weight:bold}.com{color:#600;font-style:italic}.typ{color:#404;font-weight:bold}.lit{color:#044}.pun,.opn,.clo{color:#440}.tag{color:#006;font-weight:bold}.atn{color:#404}.atv{color:#060}}pre.prettyprint{ }ol.linenums{margin-top:0;margin-bottom:0}li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8{list-style-type:none}li.L1,li.L3,li.L5,li.L7,li.L9{background:#eee}
+pre.prettyprint{ margin-top: 10px; font-family: Menlo,Monaco,Consolas,"Courier New",monospace; padding: 9px 14px; margin-bottom: 14px; background-color: #f7f7f9; border: 1px solid #e1e1e8; 
+white-space:pre;white-space:pre-wrap;word-break:break-all;word-wrap:break-word;
+}
+
+.item{ margin: 20px 0;}
+.item h2{ line-height: 40px; font-size: 18px;} 
+.item h3{ margin-left: 20px; line-height: 30px; font-size: 14px; font-weight: normal; color: #ef9508;} 
+</style>
+</head>
+<body>
+<div class="wrap">
+	<h1>Avatar Web数据统计 Demo</h1>
+	<div class="item">
+		<h2>1. 基本配置</h2>
+		<div class="con">
+			<pre class="prettyprint">
+var scriptTag = document.createElement('script');
+scriptTag.type = 'text/javascript';
+scriptTag.async = true;
+scriptTag.src = "https://s3.cn-north-1.amazonaws.com.cn/cn-browser/version-0001/lib/avatar.js";
+var head= document.getElementsByTagName('head')[0] || document.documentElement;
+head.insertBefore(scriptTag, head.firstChild);
+
+var avatar = window.Avatar = window.Avatar || [];
+avatar.push({
+    appKey: 'W1E80T6RP4V1', // appkey
+    pageId: 'index',		// 页面标识
+    startTime: STARTTIME, // STARTTIME在页面顶部设定，用于采集loadtime
+    channel: 'xxx',		// 设置渠道
+    versionName: '1.0.1', // 设置版本
+    versionCode: '01',	// 设置版本号
+    init: function(){
+        console.log('初始化完成');
+    }
+});
+</pre>
+		</div>
+	</div>
+	
+	<div class="item">
+		<h2>2. 自定义事件--直接发送数据 Avatar.push(['track', options]);</h2>
+		<div class="con">
+			<h3></h3>
+			<a href="javascript:;" id="Clink" onclick="trackInfo();">点击采集点击次数</a>
+			<pre class="prettyprint">
+function trackInfo(){
+    Avatar.push(['track', ['category', 'action', 'label', {arg1:0, arg2:0, arg3:0, arg4:0, arg5:0}, 0]]);
+}
+// 参数解释
+category: {string} 事件类型
+action: {string} 事件名称
+label: {string} 事件说明
+{arg1:0, arg2:0, arg3:0, arg4:0, arg5:0}: {json} 事件参数，最多五个
+0：{number} 事件值
+</pre>
+		</div>
+	</div>
+	
+	<div class="item">
+		<h2>3. 自定义事件--注册统计事件  Avatar.push(['register', target, options]);</h2>
+		<div class="con">
+			<h3>3.1. options为function，即parser</h3>
+			<a href="javascript:;" id="Link1">点击采集点击次数</a>
+			<pre class="prettyprint">
+// options为function，即parser:
+function clickLink1(evt, target){
+	// evt 事件
+	// target 当前dom
+	return ['Category', 'action', 'label', {arg1:0, arg2:0, arg3:0, arg4:0, arg5:0}, 0];
+}
+Avatar.push(['register', document.getElementById('Link1'), clickLink1]);
+</pre>
+		</div>
+		
+		<div class="con">
+			<h3>3.2. options为json表示只有一个事件; 没有selector表示注册对象自身触发事件；有传回给parser的参数args:</h3>
+			<a href="javascript:;" class="link2">link-1</a>&nbsp;&nbsp;
+			<a href="javascript:;" class="link2">link-2</a>
+			<pre class="prettyprint">
+function clickClassLink(evt, target, arg1, arg2){
+	// evt 事件
+	// target 当前dom
+	// arg1: args的第一个参数
+	// arg2: args的第二个参数
+	return ['Category', 'action', 'label', {arg1: arg1, arg2: arg2, arg3:0, arg4:0, arg5:0}, 0];
+}
+
+// options为json表示只有一个事件; 没有selector表示注册对象自身触发事件；有传回给parser的参数args:
+Avatar.push(['register', document.getElementsByClassName('link2'), {parser: clickClassLink, args: ['arg1', 'arg2']}]);
+</pre>
+		</div>
+		
+		<div class="con">
+			<h3>3.3. options为json表示只有一个事件; 带有selector表示用于标识该target下直接触发该事件的对象</h3>
+			<div id="List1">
+				<a href="javascript:;" class="listLink" index="1">link-1</a>&nbsp;&nbsp;
+				<a href="javascript:;" class="listLink" index="2">link-2</a>
+			</div>
+			<pre class="prettyprint">
+function clickList1(evt, target){
+   var _action = evt.target.getAttribute('index');
+   return ['Category', _action, 'label', {arg1: 0, arg2: 0, arg3:0, arg4:0, arg5:0}, 0];;
+}
+// 只有一个事件；class中有'listLink'的对象被点击会触发统计：
+Avatar.push(['register', document.getElementById('List1'), {selector: '.listLink', parser: clickList1}]);
+</pre>
+		</div>
+		
+		<div class="con">
+			<h3>3.4. options为两个元素的数组，ID为list2的容器被注册了两个事件。一个是tagName为'A'的对象触发，另一个是设置了'parag'属性的对象触发</h3>
+			<div id="List2">
+				<a href="http://www.motorola.com.cn" target="_blank">a标签元素</a>&nbsp;&nbsp;<a href="javascript:;">a标签元素</a>&nbsp;&nbsp;
+				<span parag>parag元素</span>&nbsp;&nbsp;<span parag>parag元素</span>
+			</div>
+			<pre class="prettyprint">
+//后面的返回数据只有'Category'，格式合法。; 
+function clickList2Anchor(evt, target){
+	location.hash='_a'+evt.target.parentNode.getAttribute('index');
+	return [location.hash];
+}
+function clickList2Parag(evt, target){
+	location.hash='*parag'+evt.target.innerHTML;
+	return [location.hash];
+}
+
+//options为两个元素的数组，ID为list2的容器被注册了两个事件。一个是tagName为'A'的对象触发，另一个是设置了'parag'属性的对象触发：
+Avatar.push(['register', document.getElementById('List2'), [{selector: '_a', parser: clickList2Anchor}, {selector: '*parag', parser: clickList2Parag}]]);
+</pre>
+		</div>
+	</div>
+	
+<script type="text/javascript">
+
+/****************************************/
+/*声明Avatar为数组如果未加载：
+/****************************************/
+var scriptTag = document.createElement('script');
+scriptTag.type = 'text/javascript';
+scriptTag.async = true;
+scriptTag.src = 'https://s3.cn-north-1.amazonaws.com.cn/cn-browser/version-0001/lib/avatar.js';
+var head= document.getElementsByTagName('head')[0] || document.documentElement;
+head.insertBefore(scriptTag, head.firstChild);
+
+var avatar = window.Avatar = window.Avatar || [];
+avatar.push({
+    appKey: 'W1E80T6RP4V1', // appkey
+    pageId: 'index',		// 页面标识
+    startTime: STARTTIME, // STARTTIME在页面顶部设定，用于采集loadtime
+    channel: 'xxx',		// 设置渠道
+    versionName: '1.0.1', // 设置版本
+    versionCode: '01',	// 设置版本号
+    init: function(){
+        console.log(123);
+	}
+});
+
+
+// 直接发起统计
+function trackInfo(){
+	Avatar.push(['track', ['category', 'action', 'label', {arg1:0, arg2:0, arg3:0, arg4:0, arg5:0}, 0]]);
+}
+
+/****************************************/
+/*注册统计事件：
+/****************************************/
+
+// options为function，即parser:
+function clickLink1(evt, target){
+	// evt 事件
+	// target 当前dom
+	return ['Category', 'action', 'label', {arg1:0, arg2:0, arg3:0, arg4:0, arg5:0}, 0];
+}
+Avatar.push(['register', document.getElementById('Link1'), clickLink1]);
+
+
+
+
+function clickClassLink(evt, target, arg1, arg2){
+	return ['Category', 'action', 'label', {arg1: arg1, arg2: arg2, arg3:0, arg4:0, arg5:0}, 0];
+}
+
+// options为json表示只有一个事件; 没有selector表示注册对象自身触发事件；有传回给parser的参数args:
+Avatar.push(['register', document.getElementsByClassName('link2'), {parser: clickClassLink, args: ['arg1', 'arg2']}]);
+
+
+
+
+function clickList1(evt, target){
+	var _action = evt.target.getAttribute('index');
+	return ['Category', _action, 'label', {arg1: 0, arg2: 0, arg3:0, arg4:0, arg5:0}, 0];;
+}
+//只有一个事件；class中有'listLink'的对象被点击会触发统计：
+Avatar.push(['register', document.getElementById('List1'), {selector: '.listLink', parser: clickList1}]);
+
+
+//后面的返回数据只有'Category'，格式合法。; 
+function clickList2Anchor(evt, target){
+	location.hash='_a'+evt.target.parentNode.getAttribute('index');
+	return [location.hash];
+}
+function clickList2Parag(evt, target){
+	location.hash='*parag'+evt.target.innerHTML;
+	return [location.hash];
+}
+
+//options为两个元素的数组，ID为list2的容器被注册了两个事件。一个是tagName为'A'的对象触发，另一个是设置了'parag'属性的对象触发：
+Avatar.push(['register', document.getElementById('List2'), [{selector: '_a', parser: clickList2Anchor}, {selector: '*parag', parser: clickList2Parag}]]);
+
+</script>
+</div>
+<body>
+</html> 
